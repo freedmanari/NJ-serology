@@ -1,0 +1,15 @@
+figures
+.DS_Store
+.Rhistory
+sero_tests.csv
+model_sero.csv
+sero_tests_by_day.csv
+vaccinations_by_age.csv
+waiting_times.csv
+q1_pcr.csv
+q1_sero.csv
+q2_pcr.csv
+q2_sero.csv
+q3_pcr.csv
+q3_sero.csv
+
