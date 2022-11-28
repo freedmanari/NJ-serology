@@ -226,6 +226,52 @@ prop_vaccinated_by_age <-
 
 ### Serology test data for serology model, need here for calculating kS
 
+
+# getting model_sero from all_sero, only if sero_tests.csv is accessible
+
+# all_sero <-
+#   read.csv("data/sero_tests.csv") %>%
+#   select(-c(value,X)) %>%
+#   mutate(test_date=as.Date(test_date),
+#          PCR_pos_date=as.Date(ifelse(PCR_pos_date=="", NA, PCR_pos_date)),
+#          test_week=get_test_week(test_date),
+#          test_month=get_test_month(test_date),
+#          delay=as.numeric(test_date-PCR_pos_date) / 7,
+#          delay_int=floor(delay),
+#          prev_PCR=!is.na(PCR_pos_date) & delay>=0)
+# model_sero <-
+#   all_sero %>%
+#   filter(lab=="BIOREFERENCE LABORATORY",
+#          test=="SARS CORONAVIRUS 2 AB.IGG",
+#          !is.na(numeric),
+#          3.8<numeric & numeric<400,
+#          age>0,
+#          test_date>="2020-05-01") %>%
+#   mutate(age_group_min=find_age_group_min(age, model_age_group_mins),
+#          prop_vaccinated_age_group_min=find_age_group_min(age, prop_vaccinated_age_group_mins),
+#          prop_infected_age_group_min=find_age_group_min(age, prop_infected_age_group_mins)) %>%
+#   left_join(prop_vaccinated_by_age, by=c("test_week","prop_vaccinated_age_group_min"="age_group_min")) %>%
+#   mutate(across(prop_vaccinated, ~replace_na(., 0)),
+#          prop_infected = NA,
+#          y_data = log(numeric)) %>%
+#   select(test_week,
+#          test_month,
+#          test_date,
+#          PCR_pos_date,
+#          age,
+#          age_group_min,
+#          prop_infected_age_group_min,
+#          gender,
+#          result,
+#          numeric,
+#          y_data,
+#          prev_PCR,
+#          delay,
+#          delay_int,
+#          prop_vaccinated,
+#          prop_infected)
+
+
 model_sero <-
   read.csv("data/model_sero.csv") %>%
   mutate(test_date=as.Date(test_date),
@@ -289,7 +335,7 @@ show_progress <- TRUE
 calculate_odds_ratios <- TRUE
 
 # false negative rates for PCR and serology tests, respectively
-kP <- .2 #https://www.acpjournals.org/doi/10.7326/M20-1495
+kP <- .2  # estimate from Kucirka et al. 2020 (https://www.acpjournals.org/doi/10.7326/M20-1495) and He et al. 2020 (https://www.sciencedirect.com/science/article/pii/S0954611120301207?via%3Dihub)     
 kS <- nrow(filter(model_sero_prev_PCR, test_week<w_vac, result=="N")) /
       nrow(filter(model_sero_prev_PCR, test_week<w_vac))
 
@@ -300,7 +346,7 @@ while (r <= reps) {
   }
 
   
-  # estimating I as in McCulloh et al. (2020) and Jombart et al. (2020)
+  # estimating I as in McCulloh et al. 2020 (https://www.frontiersin.org/articles/10.3389/fdata.2020.565589/full) and Jombart et al. 2020 (https://wellcomeopenresearch.org/articles/5-78/v1)    
   IFR <- rlnorm(1, IFR_mu, IFR_sigma)
   I <- rep(0,W_deaths)
   for (i in 1:W_deaths) {

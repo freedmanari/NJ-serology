@@ -80,24 +80,36 @@ for (i in 1:length(interval_mins)) {
 }
 
 
-#calculate the delay distributions from tests with past PCR positive
-delay_dists <-
-  all_sero %>%
-  filter(!is.na(PCR_pos_date),
-         delay>=0) %>% 
-  count(test_week, delay_int) %>% 
-  group_by(test_week) %>% 
-  summarise(delay_int=delay_int,
-            n=n,
-            p=n/sum(n)) %>%
-  ungroup() %>% 
-  pivot_wider(id_cols=c(test_week,delay_int),
-              names_from=delay_int,
-              values_from=p,
-              values_fill=0) %>% 
-  select(-test_week)
-delay_dists <- cbind(delay_dists,matrix(0,nrow(delay_dists),W-ncol(delay_dists)))
-delay_dists <- rbind(do.call(rbind,lapply(1:(W-nrow(delay_dists)), function(i) c(rep(1/i,i),rep(0,W-i)))), as.matrix(delay_dists))
+
+
+## calculate the delay distributions from tests with past PCR positive
+
+
+# with access to sero_data.csv
+
+# delay_dists <-
+#   all_sero %>%
+#   filter(prev_PCR) %>% 
+#   count(test_week, delay_int) %>% 
+#   group_by(test_week) %>% 
+#   summarise(delay_int=delay_int,
+#             n=n,
+#             p=n/sum(n)) %>%
+#   ungroup() %>% 
+#   pivot_wider(id_cols=c(test_week,delay_int),
+#               names_from=delay_int,
+#               values_from=p,
+#               values_fill=0) %>% 
+#   select(-test_week)
+# delay_dists <- cbind(delay_dists,matrix(0,nrow(delay_dists),W-ncol(delay_dists)))
+# delay_dists <- rbind(do.call(rbind,lapply(1:(W-nrow(delay_dists)), function(i) c(rep(1/i,i),rep(0,W-i)))), as.matrix(delay_dists))
+# colnames(delay_dists) <- 0:(W-1)
+
+
+# without access to sero_data.csv
+
+delay_dists <- as.matrix(read.csv("data/delay_dists.csv"))
+colnames(delay_dists) <- 0:(W-1)
 
 
 

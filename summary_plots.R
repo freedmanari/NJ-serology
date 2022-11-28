@@ -249,31 +249,33 @@ p4 <- X12_region %>%
 # complete summary plot part b
 plot_grid(p1, p2, p3, p4, ncol=1, align="v", axis=c("lr"), rel_heights=c(2,1,1,1))
 
+
 # to get grayscale legend and x axis labels to add into summary plot part b
-gray <-
-  X1_region %>% 
-  group_by(region) %>%
-  summarise(date=date,X1=X1/max(X1)) %>% 
-  filter(date < get_week_start_from_test_week(W)) %>% 
-  ggplot() +
-  geom_tile(aes(x=date, y=region, fill=X1)) +
-  scale_fill_gradientn(colors = c("white","gray25"), limits=c(0,1),
-                       guide = guide_colorbar(frame.colour = "black", ticks.colour = "black")) +
-  scale_x_date(date_labels="%b '%y",date_breaks="1 month",expand=c(0,0)) +
-  scale_y_discrete(expand=c(0,0)) +
-  ylab("region") +
-  theme(axis.ticks.y=element_blank(),
-        axis.text.x=element_text(angle = 90),
-        axis.line.x=element_line(size=.3),
-        axis.line.y=element_blank(),
-        plot.margin = unit(c(0,5.5,-2.3,5.5), "pt"),
-        legend.key.height = unit(11, "pt"),
-        legend.key.width = unit(14, "pt"),
-        legend.title = element_blank(),
-        legend.margin=margin(0,0,0,0),
-        legend.box.margin=margin(0,0,0,0),
-        legend.position="right")
-plot_grid(p1, gray, ncol=1, align="v", axis=c("lr"), rel_heights=c(2,1))
+
+# gray <-
+#   X1_region %>% 
+#   group_by(region) %>%
+#   summarise(date=date,X1=X1/max(X1)) %>% 
+#   filter(date < get_week_start_from_test_week(W)) %>% 
+#   ggplot() +
+#   geom_tile(aes(x=date, y=region, fill=X1)) +
+#   scale_fill_gradientn(colors = c("white","gray25"), limits=c(0,1),
+#                        guide = guide_colorbar(frame.colour = "black", ticks.colour = "black")) +
+#   scale_x_date(date_labels="%b '%y",date_breaks="1 month",expand=c(0,0)) +
+#   scale_y_discrete(expand=c(0,0)) +
+#   ylab("region") +
+#   theme(axis.ticks.y=element_blank(),
+#         axis.text.x=element_text(angle = 90),
+#         axis.line.x=element_line(size=.3),
+#         axis.line.y=element_blank(),
+#         plot.margin = unit(c(0,5.5,-2.3,5.5), "pt"),
+#         legend.key.height = unit(11, "pt"),
+#         legend.key.width = unit(14, "pt"),
+#         legend.title = element_blank(),
+#         legend.margin=margin(0,0,0,0),
+#         legend.box.margin=margin(0,0,0,0),
+#         legend.position="right")
+# plot_grid(p1, gray, ncol=1, align="v", axis=c("lr"), rel_heights=c(2,1))
 
 
 
