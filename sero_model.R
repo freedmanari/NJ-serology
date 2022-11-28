@@ -82,7 +82,7 @@ for (i in 1:length(interval_mins)) {
 
 
 
-## calculate the delay distributions from tests with past PCR positive
+## calculate the backwards delay distributions from tests with past PCR positive
 
 
 # with access to sero_data.csv

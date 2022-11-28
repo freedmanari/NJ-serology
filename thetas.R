@@ -224,6 +224,9 @@ prop_vaccinated_by_age <-
             prop_vaccinated=prop_vaccinated/max(prop_vaccinated,1/N)*prop_vaccinated_max) %>%
   select(test_week, age_group_min, prop_vaccinated)
 
+
+
+
 ### Serology test data for serology model, need here for calculating kS
 
 
