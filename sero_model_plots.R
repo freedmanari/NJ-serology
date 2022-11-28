@@ -168,7 +168,6 @@ model_sero_prev_PCR %>%
   ggplot() +
   geom_ribbon(data=filter(y_pred_age_data,age_group=="total"), aes(delay_int,ymin=low,ymax=high), fill="grey", alpha=.3) +
   geom_line(data=filter(y_pred_age_data,age_group=="total"), aes(delay_int,y=mean), col="red") +
-  #geom_line(data=y_pred_age_data, aes(delay_int+.5,y=y_mean), col="blue") +
   geom_point(aes(delay_int,y)) +
   geom_hline(aes(yintercept=filter(y_pred_age_data,age_group=="total",delay_int==0)$mean),size=.3) +
   xlab("delay from PCR positive to serology test (weeks)") +
@@ -401,7 +400,7 @@ model_sero %>%
   group_by(test_week, prev_PCR=factor(ifelse(prev_PCR,"yes","no"),levels=c("yes","no"))) %>%
   summarise(y=mean(vac_pred)) %>%
   ungroup() %>% 
-  mutate(date=get_week_start_from_test_week(test_week)) %>% #14+as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep="")))) %>% 
+  mutate(date=get_week_start_from_test_week(test_week)) %>% 
   ggplot() +
   geom_line(data=data.frame(date=get_week_start_from_test_week(w_vac:W),
                             prop_vac=cumsum(V[w_vac:W])/N),

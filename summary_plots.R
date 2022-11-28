@@ -15,6 +15,29 @@ fancy_scientific <- function(l) {
 }
 
 
+
+
+
+# population size of each NJ region
+north_counties <- c("Bergen","Hudson","Essex","Morris","Passaic","Warren","Sussex")
+central_counties <- c("Hunterdon","Somerset","Union","Mercer","Middlesex")
+shore_counties <- c("Cape May","Atlantic","Ocean","Monmouth")
+south_counties <- c("Cumberland","Salem","Gloucester","Camden","Burlington")
+
+pop_by_region <-
+  pop_by_county %>%
+  mutate(region =
+           case_when(County %in% north_counties ~ "north",
+                     County %in% central_counties ~ "central",
+                     County %in% shore_counties ~ "shore",
+                     County %in% south_counties ~ "south",
+                     TRUE ~ "unknown")) %>%
+  group_by(region) %>%
+  summarise(pop=sum(pop_2021))
+
+
+
+
 # PCR positives broken up by NJ region
 X1_region <- read.csv("data/q1_pcr.csv")
 X1_region <-
@@ -82,25 +105,35 @@ X12_region$region <- factor(X12_region$region, levels=unique(X12_region$region))
 X1_region %>%
   right_join(X2_region) %>%
   right_join(X12_region) %>%
-  pivot_longer(cols=c(X1,X2,X12), names_to="type", values_to="cases") %>%
-  mutate(type=factor(type, levels=c("X1","X2","X12")),
-         region=factor(region, levels=c("north","central","shore","south"))) %>%
-  group_by(region, type) %>%
-  summarise(total_cases=sum(cases)) %>%
+  group_by(region) %>% 
+  summarise(X1=sum(X1),
+            X2=sum(X2),
+            X12=sum(X12)) %>%
   ungroup() %>%
+  right_join(pop_by_region) %>%
+  mutate(pop=pop/10) %>% 
+  pivot_longer(cols=-region, names_to="type", values_to="cases") %>% 
+  mutate(type=factor(type, levels=c("X1","X2","X12","pop")),
+         region=factor(region, levels=c("north","central","shore","south"))) %>%
   ggplot() +
-  geom_col(aes(x=region, y=total_cases, fill=type),position="dodge") +
-  scale_fill_manual(values=c("red3","chartreuse4","dodgerblue3"),
-                    labels=c("PCR positives","Seropositives","Seropositives")) +
-  scale_y_continuous(expand=expansion(mult=c(0,.05)),labels=fancy_scientific) +
+  geom_col(aes(x=region, y=cases, fill=type, color=type, linetype=type), position="dodge",
+           width=.82) +
+  scale_fill_manual(values=c("red3","chartreuse4","dodgerblue3","gray97"),
+                    labels=c("PCR positives","seropositives","seropositives","")) +   #add "with past PCR positive" to last legend item when editing
+  scale_color_manual(values=c("red3","chartreuse4","dodgerblue3","black"),
+                     guide="none") +
+  scale_linetype_manual(values=c("solid","solid","solid","dashed"),
+                     guide="none") +
+  scale_y_continuous(expand=expansion(mult=c(0,.05)),labels=fancy_scientific,
+                     sec.axis = sec_axis(~ ./10, name = "population",labels=fancy_scientific)) +
   ylab("total cases") +
   theme(panel.background=element_blank(),
         axis.line=element_line(size=.4),
-        #legend.position=c(.78,.83),
         legend.title = element_blank(),
         legend.key.size = unit(17,"pt"),
         legend.text = element_text(size=10),
-        legend.position="bottom")
+        legend.position="bottom",
+        axis.line.y.right=element_line(linetype="longdash"))
 
 
 
@@ -149,6 +182,7 @@ p2 <- X1_region %>%
             axis.title.x=element_blank(),
             axis.ticks.y=element_blank(),
             axis.line.x=element_line(size=.3),
+            axis.line.y=element_blank(),
             plot.margin = unit(c(0,5.5,-2.3,5.5), "pt"),
             legend.key.height = unit(11, "pt"),
             legend.key.width = unit(14, "pt"),
@@ -174,6 +208,7 @@ p3 <- X2_region %>%
             axis.ticks.x=element_blank(),
             axis.title.x=element_blank(),
             axis.line.x=element_line(size=.3),
+            axis.line.y=element_blank(),
             axis.ticks.y=element_blank(),
             plot.margin = unit(c(0,5.5,-2.3,5.5), "pt"),
             legend.key.height = unit(11, "pt"),
@@ -202,6 +237,7 @@ p4 <- X12_region %>%
             axis.title.x=element_blank(),
             axis.ticks.y=element_blank(),
             axis.line.x=element_line(size=.4),
+            axis.line.y=element_blank(),
             plot.margin = unit(c(0,5.5,0,5.5), "pt"),
             legend.key.width = unit(14, "pt"),
             legend.key.height = unit(11, "pt"),
@@ -213,8 +249,9 @@ p4 <- X12_region %>%
 # complete summary plot part b
 plot_grid(p1, p2, p3, p4, ncol=1, align="v", axis=c("lr"), rel_heights=c(2,1,1,1))
 
-# to get grayscale legend to substitute into summary plot part b
-X1_region %>% 
+# to get grayscale legend and x axis labels to add into summary plot part b
+gray <-
+  X1_region %>% 
   group_by(region) %>%
   summarise(date=date,X1=X1/max(X1)) %>% 
   filter(date < get_week_start_from_test_week(W)) %>% 
@@ -222,20 +259,21 @@ X1_region %>%
   geom_tile(aes(x=date, y=region, fill=X1)) +
   scale_fill_gradientn(colors = c("white","gray25"), limits=c(0,1),
                        guide = guide_colorbar(frame.colour = "black", ticks.colour = "black")) +
-  scale_x_date(expand=c(0,0)) +
+  scale_x_date(date_labels="%b '%y",date_breaks="1 month",expand=c(0,0)) +
   scale_y_discrete(expand=c(0,0)) +
-  ylab("") +
-  theme(axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.x=element_blank(),
-        axis.ticks.y=element_blank(),
+  ylab("region") +
+  theme(axis.ticks.y=element_blank(),
+        axis.text.x=element_text(angle = 90),
         axis.line.x=element_line(size=.3),
+        axis.line.y=element_blank(),
         plot.margin = unit(c(0,5.5,-2.3,5.5), "pt"),
         legend.key.height = unit(11, "pt"),
         legend.key.width = unit(14, "pt"),
         legend.title = element_blank(),
         legend.margin=margin(0,0,0,0),
-        legend.box.margin=margin(0,0,0,0))
+        legend.box.margin=margin(0,0,0,0),
+        legend.position="right")
+plot_grid(p1, gray, ncol=1, align="v", axis=c("lr"), rel_heights=c(2,1))
 
 
 
@@ -272,17 +310,14 @@ prop_prev_pcr %>%
   theme(axis.text.x=element_text(angle = 90),
         axis.ticks.y=element_blank(),
         axis.line.x=element_line(color="black", size=.3),
-        legend.title=element_text(size=10))
+        axis.line.y=element_blank(),
+        legend.title=element_text(size=10),
+        legend.position="right")
 
 
 
 
 ## summary plot part d, map of NJ regions
-
-north_counties <- c("Bergen","Hudson","Essex","Morris","Passaic","Warren","Sussex")
-central_counties <- c("Hunterdon","Somerset","Union","Mercer","Middlesex")
-shore_counties <- c("Cape May","Atlantic","Ocean","Monmouth")
-south_counties <- c("Cumberland","Salem","Gloucester","Camden","Burlington")
 
 NJ_counties <-
   counties(state="NJ", cb=T, class="sf") %>% 
@@ -372,25 +407,34 @@ S_region <-
 # total testing volume for PCR and serology tests by NJ region,
 # part a of testing summary summary plot
 P_region %>%
-  right_join(S_region) %>% 
-  pivot_longer(cols=c(P,S), names_to="type", values_to="tests") %>%
-  mutate(type=factor(type, levels=c("P","S")),
-         region=factor(region, levels=c("north","central","shore","south"))) %>%
-  group_by(region, type) %>%
-  summarise(total_tests=sum(tests)) %>%
+  right_join(S_region) %>%
+  group_by(region) %>% 
+  summarise(P=sum(P),
+            S=sum(S)) %>%
   ungroup() %>%
+  right_join(pop_by_region) %>%
+  pivot_longer(cols=-region, names_to="type", values_to="tests") %>%
+  mutate(type=factor(type, levels=c("P","S","pop")),
+         region=factor(region, levels=c("north","central","shore","south"))) %>%
   ggplot() +
-  geom_col(aes(x=region, y=total_tests, fill=type),position="dodge") +
-  scale_fill_manual(values=c("red3","chartreuse4"),
-                    labels=c("PCR tests","Serology tests")) +
-  scale_y_continuous(expand=expansion(mult=c(0,.05)),labels=fancy_scientific) +
+  geom_col(aes(x=region, y=tests, fill=type, color=type, linetype=type), position="dodge",
+           width=.82) +
+  scale_fill_manual(values=c("red3","chartreuse4","gray97"),
+                    labels=c("PCR tests","serology tests","")) +
+  scale_color_manual(values=c("red3","chartreuse4","black"),
+                     guide="none") +
+  scale_linetype_manual(values=c("solid","solid","dashed"),
+                        guide="none") +
+  scale_y_continuous(expand=expansion(mult=c(0,.05)),labels=fancy_scientific,
+                     sec.axis = sec_axis(~ ., name = "population",labels=fancy_scientific)) +
   ylab("total testing volume") +
   theme(panel.background=element_blank(),
         axis.line=element_line(size=.4),
         legend.title = element_blank(),
         legend.key.size = unit(17,"pt"),
         legend.text = element_text(size=10),
-        legend.position="bottom")
+        legend.position="bottom",
+        axis.line.y.right=element_line(linetype="longdash"))
 
 
 
@@ -439,6 +483,7 @@ p2 <-
           axis.title.x=element_blank(),
           axis.ticks.y=element_blank(),
           axis.line.x=element_line(size=.3),
+          axis.line.y=element_blank(),
           plot.margin = unit(c(0,5.5,-2.3,5.5), "pt"),
           legend.key.height = unit(11, "pt"),
           legend.key.width = unit(14, "pt"),
@@ -465,7 +510,8 @@ p3 <-
           #axis.ticks.x=element_blank(),
           #axis.title.x=element_blank(),
           axis.ticks.y=element_blank(),
-          axis.line.x=element_line(size=.3),
+          axis.line.x=element_line(size=.4),
+          axis.line.y=element_blank(),
           plot.margin = unit(c(0,5.5,-2.3,5.5), "pt"),
           legend.key.height = unit(11, "pt"),
           legend.key.width = unit(14, "pt"),
@@ -499,7 +545,7 @@ prop_prev_pcr_all %>%
   geom_tile(aes(x=date, y=region, fill=prop_prev_pcr, color=prop_prev_pcr), size=1) +
   scale_fill_gradientn(colors = rainbow_gradient, na.value = "gray80",
                        guide = guide_colorbar(frame.colour = "black", ticks.colour = "black"),
-                       name = stringr::str_wrap("proportion of seropositives with past PCR positive",
+                       name = stringr::str_wrap("proportion of serology tests with past PCR positive",
                                                 width = 20)) +
   scale_color_gradientn(colors = rainbow_gradient, na.value = "gray80", guide="none") +
   scale_x_date(date_labels="%b '%y",date_breaks="1 month",expand=c(0,0)) +
@@ -507,7 +553,9 @@ prop_prev_pcr_all %>%
   theme(axis.text.x=element_text(angle = 90),
         axis.ticks.y=element_blank(),
         axis.line.x=element_line(color="black", size=.3),
-        legend.title=element_text(size=10))
+        axis.line.y=element_blank(),
+        legend.title=element_text(size=10),
+        legend.position="right")
 
 
 
