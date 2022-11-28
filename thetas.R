@@ -66,18 +66,25 @@ X12 <- sapply(1:W, function(w) sum(sapply(1:w, function(v) sum(waiting_times[[v]
 
 ### NJ demographics
 
-#https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-detail.html
-census_data <-
-  read.csv("data/sc-est2019-agesex-civ.csv") %>%
-  filter(NAME=="New Jersey", SEX==0, AGE<=85) %>% 
-  select(age_group_min=AGE, pop=POPEST2019_CIV)
-
-N <- sum(census_data$pop) #New Jersey population size 
-
-
-# 2021 census population estimates by county, adds up to very different total NJ population size though?
+# 2021 census population estimates by county
 # https://www.census.gov/data/tables/time-series/demo/popest/2020s-counties-total.html
-pop_by_county <- read.csv("data/co-est2021-pop-34.csv")
+pop_by_county <-
+  read.csv("data/co-est2021-alldata.csv") %>%
+  filter(STNAME=="New Jersey", CTYNAME != "New Jersey") %>%
+  mutate(county=str_remove(CTYNAME, " County")) %>%
+  select(county, pop=POPESTIMATE2021)
+
+N <- sum(pop_by_county$pop) #New Jersey population size 
+
+
+# 2021 census population estimates by age
+#https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-detail.html
+census_data <-
+  read.csv("data/sc-est2021-agesex-civ.csv") %>%
+  filter(NAME=="New Jersey", SEX==0, AGE<=85) %>% 
+  select(age_group_min=AGE, pop=POPEST2021_CIV)
+census_data$pop <- census_data$pop / sum(census_data$pop) * N  # readjust to get correct total population size
+
 
 
 

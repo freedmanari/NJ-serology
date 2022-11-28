@@ -20,8 +20,8 @@ From NJ Department of Health (all of these are available only upon request):
 - sero_tests_by_day.csv: daily number of serology tests given in NJ, broken up by positives and negatives
 
 Data from other sources:
-- co-est2021-pop-34.csv: 2021 estimated NJ census data by county, from https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-detail.html
-- sc-est2019-agesex-civ.csv: 2019 estimated NJ census data by age and sex, from https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-detail.html
+- co-est2021-pop-34.csv: 2021 estimated NJ census data by county, from https://www.census.gov/data/tables/time-series/demo/popest/2020s-counties-total.html
+- sc-est2019-agesex-civ.csv: 2019 estimated NJ census data by age and sex, from https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-detail.html
 - owid-covid-data.csv: weekly CFR estimates from US, from https://ourworldindata.org/mortality-risk-covid
 - NJ_incidence_by_age.csv: weekly COVID-19 incidence in NJ per 100,000 by age group, from https://covid.cdc.gov/covid-data-tracker/#demographicsovertime
 - Provisional_COVID-19_Death_Counts_by_Week_Ending_Date_and_State.csv: weekly COVID-19 death counts by state from https://data.cdc.gov/NCHS/Provisional-COVID-19-Death-Counts-by-Week-Ending-D/r8kw-7aab

@@ -27,13 +27,13 @@ south_counties <- c("Cumberland","Salem","Gloucester","Camden","Burlington")
 pop_by_region <-
   pop_by_county %>%
   mutate(region =
-           case_when(County %in% north_counties ~ "north",
-                     County %in% central_counties ~ "central",
-                     County %in% shore_counties ~ "shore",
-                     County %in% south_counties ~ "south",
+           case_when(county %in% north_counties ~ "north",
+                     county %in% central_counties ~ "central",
+                     county %in% shore_counties ~ "shore",
+                     county %in% south_counties ~ "south",
                      TRUE ~ "unknown")) %>%
   group_by(region) %>%
-  summarise(pop=sum(pop_2021))
+  summarise(pop=sum(pop))
 
 
 
