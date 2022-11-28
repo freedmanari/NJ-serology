@@ -63,6 +63,7 @@ waiting_times <- #waiting times in weeks from positive PCR to positive serology 
 X12 <- sapply(1:W, function(w) sum(sapply(1:w, function(v) sum(waiting_times[[v]]==w-v)))) #positive serology tests with previous positive PCR tests
 
 
+
 ### NJ demographics
 
 #https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-detail.html
@@ -77,6 +78,8 @@ N <- sum(census_data$pop) #New Jersey population size
 # 2021 census population estimates by county, adds up to very different total NJ population size though?
 # https://www.census.gov/data/tables/time-series/demo/popest/2020s-counties-total.html
 pop_by_county <- read.csv("data/co-est2021-pop-34.csv")
+
+
 
 
 ### Mortality data
