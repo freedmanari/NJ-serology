@@ -445,6 +445,23 @@ while (r <= reps) {
 
 
 
+
+
+# for saving the results of the infection curve and thetas simulations
+
+# save(Is,
+#      theta_I_P,
+#      theta_I_S,
+#      theta_Pp_P,
+#      theta_Pp_S,
+#      file="data/thetas_simulations.RData")
+
+# for loading the results of the infection curve and thetas simulations
+
+# load("data/thetas_simulations.RData")
+
+
+
 Is_sorted <- lapply(Is, sort)
 I_best <- Is_sorted %>% lapply(function(w) ifelse(is.null(w), NA, mean(w))) %>% unlist
 I_lower <- Is_sorted %>% lapply(function(w) ifelse(is.null(w), NA, w[round(reps*(1-conf)/2)+1])) %>% unlist

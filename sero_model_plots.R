@@ -5,7 +5,37 @@ require(lubridate)
 require(cowplot)
 require(ggtext)
 require(stringr)
+library(scales)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+# for saving the results of the sero model simulations
+
+# save(sero_model_summs_normal_r_SV,
+#      summ_prev_PCR_normal_r_SV,
+#      sero_model_normal_r_SV,
+#      sero_model_prev_PCR_normal_r_SV,
+#      model_sero_normal_r_SV,
+#      sero_model_summs_low_r_SV,
+#      summ_prev_PCR_low_r_SV,
+#      sero_model_low_r_SV,
+#      sero_model_prev_PCR_low_r_SV,
+#      model_sero_low_r_SV,
+#      sero_model_summs_high_r_SV,
+#      summ_prev_PCR_high_r_SV,
+#      sero_model_high_r_SV,
+#      sero_model_prev_PCR_high_r_SV,
+#      model_sero_high_r_SV,
+#      file="data/sero_model_simulations.RData")
+
+# for loading the results of the sero model simulations
+
+# load("data/sero_model_simulations.RData")
+
+
+
+
+
+
 
 ## choose which set of sero model outputs to use based on r_SV value
 
@@ -281,6 +311,102 @@ model_sero %>%
   geom_vline(xintercept=get_week_start_from_test_week(w_vac), color="red", lty="dashed")
 
 
+## sero model fits for just tests with past PCR positive, across all simulations
+
+stan_preds_prev_PCR <- data.frame(r=numeric(), date=Date(), y=numeric())
+for (r in 1:reps) {
+  summ <- sero_model_summs[[r]]
+  temp <-
+    model_sero %>%
+    cbind(y_pred_stan=summ[grep("y_pred[1-9]", names(summ))]) %>% 
+    filter(test_date>="2020-05-01" & test_date<"2021-09-01", prev_PCR) %>%
+    group_by(year=year(test_date)+1/12*month(test_date)) %>%
+    summarise(y=mean(y_pred_stan)) %>%
+    ungroup() %>% 
+    mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
+  
+  
+  stan_preds_prev_PCR <- rbind(stan_preds_prev_PCR, data.frame(r=r, date=temp$date, y=temp$y))
+}
+
+y_data_prev_PCR <-
+  model_sero %>%
+  filter(test_date>="2020-05-01" & test_date<"2021-09-01", prev_PCR) %>% 
+  group_by(year=year(test_date)+1/12*month(test_date)) %>%
+  summarise(lwr=t.test(y_data)[[4]][1],
+            upr=t.test(y_data)[[4]][2],
+            y=mean(y_data)) %>%
+  mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
+
+
+stan_preds_prev_PCR %>%
+  ggplot() +
+  geom_errorbar(data=y_data_prev_PCR, aes(x=date,ymin=lwr, ymax=upr), color=hue_pal()(2)[1], width=8) +
+  geom_point(data=y_data_prev_PCR, aes(x=date,y=y), color=hue_pal()(2)[1]) +
+  geom_vline(xintercept=get_week_start_from_test_week(w_vac), color="red", lty="dashed") +
+  geom_line(aes(date,y,color=as.factor(r),group=r),alpha=.3) +
+  ylab("mean log titer value") +
+  xlab("test date") +
+  scale_x_date(date_labels="%b '%y",date_breaks="1 month") +
+  scale_y_continuous(breaks=seq(2.5,5,.5),
+                     limits=c(min(c(y_data_prev_PCR$lwr,y_data_no_prev_PCR$lwr)),max(c(y_data_prev_PCR$upr,y_data_no_prev_PCR$upr)))) +
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        panel.border=element_blank(),
+        axis.text.x = element_text(angle = 90),
+        axis.line = element_line(colour = "black", size=.3),
+        legend.position="none",
+        plot.title=element_text(hjust = 0.5))
+  
+## sero model fits for just tests without past PCR positive, across all simulations
+
+stan_preds_no_prev_PCR <- data.frame(r=numeric(), date=Date(), y=numeric())
+for (r in 1:reps) {
+  summ <- sero_model_summs[[r]]
+  temp <-
+    model_sero %>%
+    cbind(y_pred_stan=summ[grep("y_pred[1-9]", names(summ))]) %>% 
+    filter(test_date>="2020-05-01" & test_date<"2021-09-01", !prev_PCR) %>%
+    group_by(year=year(test_date)+1/12*month(test_date)) %>%
+    summarise(y=mean(y_pred_stan)) %>%
+    ungroup() %>% 
+    mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
+  
+  
+  stan_preds_no_prev_PCR <- rbind(stan_preds_no_prev_PCR, data.frame(r=r, date=temp$date, y=temp$y))
+}
+
+y_data_no_prev_PCR <-
+  model_sero %>%
+  filter(test_date>="2020-05-01" & test_date<"2021-09-01", !prev_PCR) %>% 
+  group_by(year=year(test_date)+1/12*month(test_date)) %>%
+  summarise(lwr=t.test(y_data)[[4]][1],
+            upr=t.test(y_data)[[4]][2],
+            y=mean(y_data)) %>%
+  mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
+
+
+stan_preds_no_prev_PCR %>%
+  ggplot() +
+  geom_point(data=y_data_no_prev_PCR, aes(x=date,y=y), color=hue_pal()(2)[2]) +
+  geom_errorbar(data=y_data_no_prev_PCR, aes(x=date,ymin=lwr, ymax=upr), color=hue_pal()(2)[2], width=8) +
+  geom_vline(xintercept=get_week_start_from_test_week(w_vac), color="red", lty="dashed") +
+  geom_line(aes(date,y,color=as.factor(r),group=r),alpha=.3) +
+  ylab("mean log titer value") +
+  xlab("test date") +
+  scale_x_date(date_labels="%b '%y",date_breaks="1 month") +
+  scale_y_continuous(breaks=seq(2.5,5,.5),
+                     limits=c(min(c(y_data_prev_PCR$lwr,y_data_no_prev_PCR$lwr)),max(c(y_data_prev_PCR$upr,y_data_no_prev_PCR$upr)))) +
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        panel.border=element_blank(),
+        axis.text.x = element_text(angle = 90),
+        axis.line = element_line(colour = "black", size=.3),
+        legend.position="none",
+        plot.title=element_text(hjust = 0.5))
+
+
+
 
 ## parameter fit plots
 
@@ -288,12 +414,12 @@ model_sero %>%
 r_VPs <- data.frame(r=numeric(), x=numeric(), y=numeric())
 for (r in 1:reps) {
   summ <- sero_model_summs[[r]]
-  r_VPs <- rbind(r_VPs, data.frame(r=rep(r,3), x=c(w_vac,summ["r_VP_switch"],W), y=summ[c("r_VP_init","r_VP_init","r_VP_end")]))
+  r_VPs <- rbind(r_VPs, data.frame(r=r, x=c(w_vac,summ["r_VP_switch"],W), y=summ[c("r_VP_init","r_VP_init","r_VP_end")]))
 }
-r_VPs$x <- get_week_start_from_test_week(r_VPs$x)
+r_VPs <- r_VPs %>% mutate(date=get_week_start_from_test_week(x))
 
 ggplot(r_VPs) +
-  geom_line(aes(x=x,y=y,color=as.factor(r),group=r),alpha=.4) +
+  geom_line(aes(date,y,color=as.factor(r),group=r),alpha=.4) +
   ylab(expression(paste(italic(r[VP]),"(",italic(w),")"))) +
   scale_x_date(name="test date",date_labels="%b '%y",date_breaks="1 month") +
   scale_y_continuous(name=bquote(italic(r)[italic(VP)](italic(w))),
@@ -416,4 +542,48 @@ model_sero %>%
         axis.line=element_line(size=.3),
         axis.text.x = element_text(angle = 90),
         plot.title=element_text(hjust=.5))
+
+
+
+
+
+
+## proportions vaccinated by vaccination age groups, used in serology model
+
+prop_vaccinated_by_age %>%
+  ggplot() +
+  geom_line(aes(get_week_start_from_test_week(test_week),
+                prop_vaccinated,group=age_group_min,col=as.factor(age_group_min)),
+            size=.8) +
+  scale_x_date(name="date",date_labels="%b '%y",date_breaks="1 month",expand=expansion(c(0,0))) +
+  scale_y_continuous(name="proportion vaccinated",limits=c(0,1),expand=expansion(c(.003,0))) +
+  scale_color_discrete(name="age group",
+                       labels=c("0-4","5-11","12-15","16-17","18-29","30-49","50-64","65-79","80+")) +
+  geom_hline(yintercept=prop_vaccinated_cap, lty="dashed",alpha=.5) +
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        panel.border=element_blank(),
+        axis.line=element_line(size=.3),
+        axis.text.x = element_text(angle = 90))
+
+
+
+## proportions of people who have ever been infected by infection age groups, used in serology model
+
+# using the mean estimate for I
+prop_infected_by_age(I_best) %>%
+  ggplot() +
+  geom_line(aes(get_week_start_from_test_week(test_week),
+                prop_infected,group=age_group_min,col=as.factor(age_group_min)),
+            size=.8) +
+  scale_x_date(name="date",date_labels="%b '%y",date_breaks="1 month",expand=expansion(c(0,0))) +
+  scale_y_continuous(name="cumulative proportion infected",limits=c(0,1),expand=expansion(c(.003,0))) +
+  scale_color_discrete(name="age group",
+                       labels=c("0-4","5-11","12-15","16-17","18-29","30-39","40-49","50-64","65-74","75+")) +
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        panel.border=element_blank(),
+        axis.line=element_line(size=.3),
+        axis.text.x = element_text(angle = 90))
+
 
