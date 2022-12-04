@@ -11,5 +11,6 @@ q2_pcr.csv
 q2_sero.csv
 q3_pcr.csv
 q3_sero.csv
+vaccinations_by_age.csv
 thetas_simulations.RData
 sero_model_simulations.RData
