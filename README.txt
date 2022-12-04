@@ -6,7 +6,7 @@ Data and code in NJ-serology repository at https://github.com/freedmanari
 
 Data
 
-From NJ Department of Health (all of these except the last two are available only upon request):
+From NJ Department of Health (all of these except delay_dists.csv are available only upon request):
 - q1_pcr.csv: weekly first-time COVID-19 PCR positives by NJ county in study period
 - q1_sero.csv: weekly first-time COVID-19 serology positives by NJ county in study period
 - q2_pcr.csv: weekly first-time PCR positives with past PCR positive, by NJ county
@@ -17,8 +17,8 @@ From NJ Department of Health (all of these except the last two are available onl
 - sero_tests_by_day.csv: daily number of serology tests given in NJ, broken up by positives and negatives
 - sero_tests.csv: all COVID-19 serology tests from New Jersey in study period, with titer value and first PCR positive date given for each test when applicable
 - model_sero.csv: just the serology tests applicable for the serology model (derived from sero_tests.csv)
-- delay_dists.csv: matrix of backwards delay distributions for serology tests taken in each test week, i.e. for each week the distribution of delays from past positive PCR test to serology tests taken in that week (derived from sero_tests.csv)
 - vaccinations_by_age.csv: weekly NJ COVID-19 vaccinations for different age groups
+- delay_dists.csv: matrix of backwards delay distributions for serology tests taken in each test week, i.e. for each week the distribution of delays from past positive PCR test to serology tests taken in that week (derived from sero_tests.csv)
 
 Data from other sources:
 - co-est2021-alldata.csv: 2021 estimated NJ census data by county, from https://www.census.gov/data/tables/time-series/demo/popest/2020s-counties-total.html

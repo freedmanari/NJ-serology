@@ -260,6 +260,7 @@ prop_vaccinated_by_age <-
 #   select(test_week,
 #          test_month,
 #          test_date,
+#          county,
 #          PCR_pos_date,
 #          age,
 #          age_group_min,
@@ -289,6 +290,7 @@ model_sero <-
   select(test_week,
          test_month,
          test_date,
+         county,
          PCR_pos_date,
          age,
          age_group_min,
@@ -339,8 +341,8 @@ calculate_odds_ratios <- TRUE
 
 # false negative rates for PCR and serology tests, respectively
 kP <- .2  # estimate from Kucirka et al. 2020 (https://www.acpjournals.org/doi/10.7326/M20-1495) and He et al. 2020 (https://www.sciencedirect.com/science/article/pii/S0954611120301207?via%3Dihub)     
-kS <- nrow(filter(model_sero_prev_PCR, test_week<w_vac, result=="N")) /
-      nrow(filter(model_sero_prev_PCR, test_week<w_vac))
+kS <- 16936 / #nrow(filter(all_sero, prev_PCR, test_week<w_vac, result=="N")) /
+      59971   #nrow(filter(all_sero, prev_PCR, test_week<w_vac))
 
 r <- 1
 while (r <= reps) {

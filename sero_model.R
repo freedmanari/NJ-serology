@@ -215,7 +215,8 @@ for (r in 1:reps) {
                                              pivot_wider(id_cols=-n,names_from="result", values_from=n) %>%
                                              mutate(prop_pos=P/(N+P)) %>%
                                              pull(prop_pos),
-                                           kS=kS,
+                                           kS=nrow(filter(model_sero_prev_PCR, test_week<w_vac, result=="N")) /
+                                              nrow(filter(model_sero_prev_PCR, test_week<w_vac)),
                                            s=summ_prev_PCR_normal_r_SV[c("s[1]","s[2]","s[3]","s[4]","s[5]")],
                                            h=summ_prev_PCR_normal_r_SV[c("h[1]","h[2]","h[3]","h[4]","h[5]")],
                                            alpha=summ_prev_PCR_normal_r_SV[c("alpha[1]","alpha[2]","alpha[3]","alpha[4]","alpha[5]")],
@@ -333,7 +334,8 @@ for (r in 1:reps) {
                                           pivot_wider(id_cols=-n,names_from="result", values_from=n) %>%
                                           mutate(prop_pos=P/(N+P)) %>%
                                           pull(prop_pos),
-                                        kS=kS,
+                                        kS=nrow(filter(model_sero_prev_PCR, test_week<w_vac, result=="N")) /
+                                           nrow(filter(model_sero_prev_PCR, test_week<w_vac)),
                                         s=summ_prev_PCR_low_r_SV[c("s[1]","s[2]","s[3]","s[4]","s[5]")],
                                         h=summ_prev_PCR_low_r_SV[c("h[1]","h[2]","h[3]","h[4]","h[5]")],
                                         alpha=summ_prev_PCR_low_r_SV[c("alpha[1]","alpha[2]","alpha[3]","alpha[4]","alpha[5]")],
@@ -440,7 +442,8 @@ for (r in 1:reps) {
                                            pivot_wider(id_cols=-n,names_from="result", values_from=n) %>%
                                            mutate(prop_pos=P/(N+P)) %>%
                                            pull(prop_pos),
-                                         kS=kS,
+                                         kS=nrow(filter(model_sero_prev_PCR, test_week<w_vac, result=="N")) /
+                                            nrow(filter(model_sero_prev_PCR, test_week<w_vac)),
                                          s=summ_prev_PCR_high_r_SV[c("s[1]","s[2]","s[3]","s[4]","s[5]")],
                                          h=summ_prev_PCR_high_r_SV[c("h[1]","h[2]","h[3]","h[4]","h[5]")],
                                          alpha=summ_prev_PCR_high_r_SV[c("alpha[1]","alpha[2]","alpha[3]","alpha[4]","alpha[5]")],

@@ -509,8 +509,6 @@ p3 <-
     scale_y_discrete(expand=c(0,0)) +
     ylab("region") +
     theme(axis.text.x=element_text(angle=90),
-          #axis.ticks.x=element_blank(),
-          #axis.title.x=element_blank(),
           axis.ticks.y=element_blank(),
           axis.line.x=element_line(size=.4),
           axis.line.y=element_blank(),
