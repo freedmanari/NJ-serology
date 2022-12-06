@@ -325,13 +325,37 @@ for (r in 1:reps) {
     ungroup() %>% 
     mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
   
-  
   stan_preds_prev_PCR <- rbind(stan_preds_prev_PCR, data.frame(r=r, date=temp$date, y=temp$y))
 }
 
 y_data_prev_PCR <-
   model_sero %>%
   filter(test_date>="2020-05-01" & test_date<"2021-09-01", prev_PCR) %>% 
+  group_by(year=year(test_date)+1/12*month(test_date)) %>%
+  summarise(lwr=t.test(y_data)[[4]][1],
+            upr=t.test(y_data)[[4]][2],
+            y=mean(y_data)) %>%
+  mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
+
+
+stan_preds_no_prev_PCR <- data.frame(r=numeric(), date=Date(), y=numeric())
+for (r in 1:reps) {
+  summ <- sero_model_summs[[r]]
+  temp <-
+    model_sero %>%
+    cbind(y_pred_stan=summ[grep("y_pred[1-9]", names(summ))]) %>% 
+    filter(test_date>="2020-05-01" & test_date<"2021-09-01", !prev_PCR) %>%
+    group_by(year=year(test_date)+1/12*month(test_date)) %>%
+    summarise(y=mean(y_pred_stan)) %>%
+    ungroup() %>% 
+    mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
+  
+  stan_preds_no_prev_PCR <- rbind(stan_preds_no_prev_PCR, data.frame(r=r, date=temp$date, y=temp$y))
+}
+
+y_data_no_prev_PCR <-
+  model_sero %>%
+  filter(test_date>="2020-05-01" & test_date<"2021-09-01", !prev_PCR) %>% 
   group_by(year=year(test_date)+1/12*month(test_date)) %>%
   summarise(lwr=t.test(y_data)[[4]][1],
             upr=t.test(y_data)[[4]][2],
@@ -358,33 +382,8 @@ stan_preds_prev_PCR %>%
         legend.position="none",
         plot.title=element_text(hjust = 0.5))
   
+
 ## sero model fits for just tests without past PCR positive, across all simulations
-
-stan_preds_no_prev_PCR <- data.frame(r=numeric(), date=Date(), y=numeric())
-for (r in 1:reps) {
-  summ <- sero_model_summs[[r]]
-  temp <-
-    model_sero %>%
-    cbind(y_pred_stan=summ[grep("y_pred[1-9]", names(summ))]) %>% 
-    filter(test_date>="2020-05-01" & test_date<"2021-09-01", !prev_PCR) %>%
-    group_by(year=year(test_date)+1/12*month(test_date)) %>%
-    summarise(y=mean(y_pred_stan)) %>%
-    ungroup() %>% 
-    mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
-  
-  
-  stan_preds_no_prev_PCR <- rbind(stan_preds_no_prev_PCR, data.frame(r=r, date=temp$date, y=temp$y))
-}
-
-y_data_no_prev_PCR <-
-  model_sero %>%
-  filter(test_date>="2020-05-01" & test_date<"2021-09-01", !prev_PCR) %>% 
-  group_by(year=year(test_date)+1/12*month(test_date)) %>%
-  summarise(lwr=t.test(y_data)[[4]][1],
-            upr=t.test(y_data)[[4]][2],
-            y=mean(y_data)) %>%
-  mutate(date=as.Date(sapply(year, function(d) paste(floor(d-1/12),"-",round((d-floor(d-1/12))*12), "-1",sep=""))))
-
 
 stan_preds_no_prev_PCR %>%
   ggplot() +
@@ -508,8 +507,10 @@ title <-
   draw_label(bquote("parameter fits for" ~ italic(r)[italic(SV)] == .(r_SV)),
              fontface="bold")
 
+# uncomment the next two commented-out lines in order to save pdf with the special characters coming out right
+# quartz(type = "pdf", file = "figures/supplementary/parameter_fits.pdf", width=par()$fin[1], height=par()$fin[2])
 plot_grid(title,pg,ncol=1,rel_heights=c(.1,1))
-
+# dev.off()
 
 
 
